@@ -1,9 +1,9 @@
 from django.shortcuts import render,HttpResponseRedirect
 from .models import *
 import os
-from .forms import FileUploadForm
+from django.contrib import messages
 
-# Create your views here.
+
 def index(request):
 
     # val=UploadedFile.objects.all()
@@ -24,6 +24,7 @@ def delete_data(request,id):
     if request.method== 'POST':
         pi=UploadedFile.objects.get(pk=id)
         pi.delete()
+        messages.success(request, f'File Delete successfully!')
         return HttpResponseRedirect('/')
     
 def download_file(request,id):
@@ -36,18 +37,20 @@ def download_file(request,id):
                 response = HttpResponse(f.read(), content_type='application/octet-stream')
                 response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
                 print(response)
+                messages.success(request, f'File download successfully!')
                 return response
         else:
             return HttpResponse("File not found.", status=404)
-        # pi.delete()
-        # return HttpResponseRedirect('/')
 
+# @csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
-        form = FileUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return render(request,"core/hello.html") # Redirect to a success page
-    else:
-        form = FileUploadForm()
-    return HttpResponseRedirect('/')
+        file = request.FILES['file']  # Get the uploaded file
+
+     
+        file_upload = UploadedFile.objects.create( file=file)
+        file_upload.save()
+        messages.success(request, f'Fileuploaded successfully!')
+        return HttpResponseRedirect("/")
+    
+  
